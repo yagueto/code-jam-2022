@@ -8,18 +8,31 @@ Then to create the virtual enviroment you should run:
 
     python3.10 -m venv .venv
 
+<<<<<<< HEAD
 This should have created a folder .venv where python and all the dependencies for the project are going to live. Now, every time you are going to run 
+=======
+This should have created a folder .venv where python and all the dependencies for the project are going to live. Now, every time you are going to run
+>>>>>>> eeb55f8fd15db97b581ac5e71cad3e3df9ddbd48
 your code or you are going to install a dependencie, be sure that the virtual enviroment is active. In linux, this is made by:
 
     source <repo path>/.venv/bin/activate
 
+<<<<<<< HEAD
 In order to manage dependencies easily, we are going to work with [pip-tools](https://github.com/jazzband/pip-tools). So once the enviroment is active, 
+=======
+In order to manage dependencies easily, we are going to work with [pip-tools](https://github.com/jazzband/pip-tools). So once the enviroment is active,
+>>>>>>> eeb55f8fd15db97b581ac5e71cad3e3df9ddbd48
 run its instalation:
 
     python -m pip install pip-tools
 
+<<<<<<< HEAD
 This tool divide the core dependencies of the project( the ones that we select ) and the derivate dependencies (dependencies need by packeges). It also help you to keep 
 your enviroment cleaned if you make some test with a dependency. 
+=======
+This tool divide the core dependencies of the project( the ones that we select ) and the derivate dependencies (dependencies need by packeges). It also help you to keep
+your enviroment cleaned if you make some test with a dependency.
+>>>>>>> eeb55f8fd15db97b581ac5e71cad3e3df9ddbd48
 
 (OPTIONAL STEP)The desired dependencies are listed in the requirements.in file. If you make an modification, you should run pip-compile to let pip-tools search for other dependencies.
 This updates the requirement.txt file that pip-tools use to manage your enviroment
@@ -29,6 +42,9 @@ This updates the requirement.txt file that pip-tools use to manage your envirome
 To install desired dependencies and clean your env for not listed dependencies, you should run:
 
     pip-sync requirements.txt dev-requirements.txt
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> eeb55f8fd15db97b581ac5e71cad3e3df9ddbd48
