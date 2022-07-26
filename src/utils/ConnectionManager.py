@@ -8,18 +8,16 @@ class WebsocketManagerProtocol(Protocol):
 
     active_games: Dict[str, WebSocket] = {}
 
-    def __init__(self) -> None:  # noqa: D102
-        ...
-
     async def create_lobby(self, websocket: WebSocket, nickname: str, lobbyName: str) -> str:
         """
         Create lobby with lobbyName.
 
-        DataComesIn: {nickname: string, lobbyName: string} -> nickname will be the leader of the lobby
+        :param nickname: name of player who joins and also the leader
+        :param lobbyName: the display name of the lobby
         create random token for lobby -> looking at active_games and find random token which does not exists
         create room with leader nickname in it
         join to that socket room (room = list of websockets)
-        DataGoesOut: {token: string} -> this will be the token of the lobby
+        :returns: lobbyToken the token of the lobby that was created
         """
         ...
 
@@ -27,11 +25,12 @@ class WebsocketManagerProtocol(Protocol):
         """
         Join room with lobbyToken.
 
-        DataComesIn: {nickname: string, lobbyToken: string}
+        :param nickname: name of player who joins
+        :param lobbyToken: the lobby the player wants to joint
         search for lobby if it exitst
             -> if not return an error: {"message": "Lobby does not exists"}
         join this player to lobby with nickname
-        DataGoesOut: {lobbyName: str}
+        :returns: lobbyName the name of the lobby joined
         """
         ...
 
