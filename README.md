@@ -13,7 +13,7 @@ your code or you are going to install a package, be sure that the virtual enviro
 
     source <repo path>/.venv/bin/activate
 
-In order to manage dependencies easily, we are going to work with [pip-tools](https://github.com/jazzband/pip-tools). So once the enviroment is active, 
+In order to manage dependencies easily, we are going to work with [pip-tools](https://github.com/jazzband/pip-tools). So once the enviroment is active,
 run its instalation:
 
     python -m pip install pip-tools
