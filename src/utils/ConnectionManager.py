@@ -1,4 +1,5 @@
-from typing import Dict, Protocol
+import secrets
+from typing import Any, Dict, List, Protocol
 
 from fastapi import WebSocket
 
@@ -8,7 +9,9 @@ class WebsocketManagerProtocol(Protocol):
 
     active_games: Dict[str, WebSocket] = {}
 
-    async def create_lobby(self, websocket: WebSocket, nickname: str, lobbyName: str) -> str:
+    async def create_lobby(
+        self, websocket: WebSocket, nickname: str, lobbyName: str
+    ) -> str:
         """
         Create lobby with lobbyName.
 
@@ -21,7 +24,9 @@ class WebsocketManagerProtocol(Protocol):
         """
         ...
 
-    async def join_room(self, websocket: WebSocket, nickname: str, lobbyToken: str) -> str:
+    async def join_room(
+        self, websocket: WebSocket, nickname: str, lobbyToken: str
+    ) -> str:
         """
         Join room with lobbyToken.
 
@@ -58,3 +63,44 @@ class WebsocketManager:
 
     def __init__(self):
         self.active_games: Dict[str, WebSocket] = {}
+
+    async def create_lobby(
+        self, websocket: WebSocket, nickname: str, lobbyName: str
+    ) -> str:
+        """
+        Create lobby with lobbyName.
+
+        :param nickname: name of player who joins and also the leader
+        :param lobbyName: the display name of the lobby
+        create random token for lobby -> looking at active_games and find random token which does not exists
+        create room with leader nickname in it
+        join to that socket room (room = list of websockets)
+        :returns: lobbyToken the token of the lobby that was created
+        """
+        lobbyToken = secrets.token_urlsafe(12)
+
+        for game in self.active_games.values():
+            if game["lobby_name"] == lobbyName:
+                raise NameError("Room name already exists")
+            while True:
+                if lobbyToken in self.active_games.keys():
+                    lobbyToken = secrets.token_urlsafe(12)
+                else:
+                    break
+
+        self.active_games[lobbyToken] = {
+            "lobby_name": lobbyName,
+            "connected": {nickname: websocket},
+        }
+        return lobbyToken
+
+    async def send(self, websockets: List[WebSocket], data: Any):
+        """Send data to one or more clients"""
+        # TODO: Handle different data types
+        if isinstance(data, Exception):  # TODO: This is a test
+            for websocket in websockets:
+                await websocket.send_json({"type": "error"})
+
+    def disconnect(self, websocket: WebSocket) -> None:
+        """Handle disconnection of a websocket."""
+        ...

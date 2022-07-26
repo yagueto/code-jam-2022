@@ -1,10 +1,10 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from utils.ConnectionManager import ConnectionManager
+from utils.ConnectionManager import WebsocketManager
 
 app = FastAPI()
 
-connection_manager: ConnectionManager = ConnectionManager()
+connection_manager: WebsocketManager = WebsocketManager()
 
 
 @app.get("/")
@@ -26,4 +26,23 @@ async def websocket_test(websocket: WebSocket):
     #   -> else the error should use an own dict structure with a self explanatory key
     #           for example: {"FormErrors": {"Username": {"MaxLenght": 12}, "LobbyName": {"MinLenght": 1}}}
     await websocket.accept()
-    await connection_manager.receive()
+    try:
+        d = await websocket.receive_json()
+        if d["type"] == "create_lobby":
+            lobbyToken = await connection_manager.create_lobby(
+                websocket, d["data"]["nickname"], d["data"]["lobbyName"]
+            )
+            await websocket.send_json(
+                {
+                    "type": "create_lobby",
+                    "status": True,
+                    "data": {"lobbyToken": lobbyToken},
+                }
+            )
+
+    except WebSocketDisconnect:
+        # TODO: Handle disconnections
+        # connection_manager.disconnect(websocket)
+        pass
+    except NameError as e:
+        await connection_manager.send(websocket, e)
