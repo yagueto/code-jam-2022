@@ -3,6 +3,7 @@ from typing import Protocol
 
 from PIL import Image
 
+
 class ImageTransmisionProtocol(Protocol):
     """Protocol for the image transmision."""
 
