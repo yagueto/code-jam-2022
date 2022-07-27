@@ -29,3 +29,7 @@ build/
 .vscode/
 # MacOS
 .DS_Store
+
+# Others
+dev-personal-requirements.in
+dev-personal-requirements.txt
