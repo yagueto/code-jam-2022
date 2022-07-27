@@ -25,8 +25,11 @@ class ImageProtocol(Protocol):
         """Changes the dimensions of an image to match the dimensions of the specified image."""
         ...
 
+
 def convert_image_to_bit_format(image: Image.Image) -> Image:
+    """Convert PIL Image to bit mode."""
     return image.convert(mode="1")
+
 
 def compute_contour_similarity(fake_contour: Image.Image, original_contour: Image.Image) -> float:
     """Compares the contour using a image similarity algorithm and returns a float between 0 and 1."""
@@ -34,9 +37,11 @@ def compute_contour_similarity(fake_contour: Image.Image, original_contour: Imag
         raise ImageExceptions.ImageFormatNotSupported(fake_contour)
     elif original_contour.mode == "1":
         raise ImageExceptions.ImageFormatNotSupported(original_contour)
-    
+
     similarity = cv2.matchShapes(fake_contour, original_contour)
-    
+
+    return similarity
+
 
 def main():  # noqa: D103
     print(Image)
