@@ -25,24 +25,14 @@ async def websocket_test(websocket: WebSocket):
     #   -> if the error has a simple structure it can be just a: {"message": "Error message"}
     #   -> else the error should use an own dict structure with a self explanatory key
     #           for example: {"FormErrors": {"Username": {"MaxLenght": 12}, "LobbyName": {"MinLenght": 1}}}
-    await websocket.accept()
+    await connection_manager.connect(websocket=websocket)
+    lobbyToken = None
     try:
-        d = await websocket.receive_json()
-        if d["type"] == "create_lobby":
-            lobbyToken = await connection_manager.create_lobby(
-                websocket, d["data"]["nickname"], d["data"]["lobbyName"]
-            )
-            await websocket.send_json(
-                {
-                    "type": "create_lobby",
-                    "status": True,
-                    "data": {"lobbyToken": lobbyToken},
-                }
-            )
+        await connection_manager.receive(websocket=websocket)
+        await websocket.receive_json()
 
     except WebSocketDisconnect:
-        # TODO: Handle disconnections
-        # connection_manager.disconnect(websocket)
-        pass
+        connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
+
     except NameError as e:
-        await connection_manager.send(websocket, e)
+        await connection_manager.send(websockets=[websocket], data=e)

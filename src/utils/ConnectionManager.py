@@ -62,6 +62,7 @@ class WebsocketManager:
     """Handles websocket connections."""
 
     def __init__(self):
+        self.active_connections: Dict[WebSocket, str] = {}
         self.active_games: Dict[str, WebSocket] = {}
 
     async def create_lobby(
@@ -90,17 +91,99 @@ class WebsocketManager:
 
         self.active_games[lobbyToken] = {
             "lobby_name": lobbyName,
-            "connected": {nickname: websocket},
+            "connected": {websocket: nickname},
         }
         return lobbyToken
+
+    async def join_lobby(self, websocket: WebSocket, nickname: str, lobbyToken: str):
+        """Join already existing lobby"""
+        if lobbyToken in self.active_games:
+            self.active_games[lobbyToken]["connected"][websocket] = nickname
+            self.active_connections[websocket] = lobbyToken
+        else:
+            await self.send(websockets=[websocket], data="Lobby does not exist")
+
+    async def connect(self, websocket: WebSocket):
+        """Accept connection and add it to list of active connections"""
+        await websocket.accept()
+        self.active_connections[websocket] = None
+
+    async def receive(self, websocket: WebSocket):
+        """Receive data from websocket and process it"""
+        data = await websocket.receive_json()
+        try:
+            match data["type"]:
+                case "create_lobby":
+                    lobbyToken = await self.create_lobby(
+                        websocket, data["data"]["nickname"], data["data"]["lobby_name"]
+                    )
+                    print(f"{websocket.client} - assigned to room")
+                    self.active_connections[websocket] = lobbyToken
+                    await websocket.send_json(
+                        {
+                            "type": "create_lobby",
+                            "data": {"lobby_token": lobbyToken},
+                        }
+                    )
+                    return
+                case "join_lobby":
+                    for game in self.active_games:
+                        if (
+                            self.active_games[game]["lobby_name"]
+                            == data["data"]["lobby_name"]
+                        ):
+                            for user in self.active_games[game]["connected"].values():
+                                if user == data["data"]["nickname"]:
+                                    raise NameError("Username already exists")
+                            await self.join_lobby(
+                                websocket=websocket,
+                                nickname=data["data"]["nickname"],
+                                lobbyToken=game,
+                            )
+                            self.active_connections[websocket] = game
+
+                            await self.send(
+                                websockets=[websocket],
+                                data={
+                                    "type": "join_lobby",
+                                    "data": {"lobby_token": game},
+                                },
+                            )
+                            return
+                    await self.send(websockets=[websocket], data="Room not found")
+                case _:
+                    await self.send(
+                        websockets=[websocket], data="Unimplemented/Bad request"
+                    )
+        except KeyError as e:
+            print(e)
+            await self.send(websockets=[websocket], data="Bad request")
+
+        except NameError as e:
+            await self.send(websockets=[websocket], data=e)
 
     async def send(self, websockets: List[WebSocket], data: Any):
         """Send data to one or more clients"""
         # TODO: Handle different data types
         if isinstance(data, Exception):  # TODO: This is a test
             for websocket in websockets:
-                await websocket.send_json({"type": "error"})
+                await websocket.send_json({"type": "error", "data": data.args})
+        elif type(data) is dict:
+            for websocket in websockets:
+                await websocket.send_json(data)
+        else:
+            for websocket in websockets:
+                await websocket.send_json({"message": data})
 
-    def disconnect(self, websocket: WebSocket) -> None:
+    def disconnect(self, websocket: WebSocket, lobbyToken) -> None:
         """Handle disconnection of a websocket."""
-        ...
+        print(f"{websocket.client} has disconnected - removing.")
+        lobbyToken = self.active_connections[websocket]
+        if lobbyToken:
+            del self.active_games[lobbyToken]["connected"][websocket]
+            print(f"{websocket.client} was in room {lobbyToken} - removing from room")
+            if len(self.active_games[lobbyToken]["connected"]) == 0:
+                del self.active_games[lobbyToken]
+                print("Room is empty - closing")
+
+        del self.active_connections[websocket]
