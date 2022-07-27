@@ -26,7 +26,7 @@ class ImageProtocol(Protocol):
         ...
 
 
-def convert_image_to_bit_format(image: Image.Image) -> Image:
+def convert_image_to_bit_format(image: Image.Image) -> Image.Image:
     """Convert PIL Image to bit mode."""
     return image.convert(mode="1")
 
