@@ -1,6 +1,7 @@
 from typing import Protocol
 
 import cv2
+import numpy as np
 from PIL import Image
 
 from . import ImageExceptions
@@ -31,14 +32,24 @@ def convert_image_to_bit_format(image: Image.Image) -> Image.Image:
     return image.convert(mode="1")
 
 
+def reshape_images(image_1: Image.Image, image_2: Image.Image) -> tuple[Image.Image, Image.Image]:
+    """Resize image_2 to match image_1 shape."""
+    shape = image_1.size
+    image_2 = image_2.resize(shape)
+    return image_1, image_2
+
+
 def compute_contour_similarity(fake_contour: Image.Image, original_contour: Image.Image) -> float:
     """Compares the contour using a image similarity algorithm and returns a float between 0 and 1."""
-    if fake_contour.mode == "1":
+    if fake_contour.mode != "1":
         raise ImageExceptions.ImageFormatNotSupported(fake_contour)
-    elif original_contour.mode == "1":
+    elif original_contour.mode != "1":
         raise ImageExceptions.ImageFormatNotSupported(original_contour)
 
-    similarity = cv2.matchShapes(fake_contour, original_contour)
+    fake_array = np.array(fake_contour).astype(np.float32)
+    original_array = np.array(original_contour).astype(np.float32)
+
+    similarity = cv2.matchShapes(fake_array, original_array, 1, 0.0)
 
     return similarity
 
