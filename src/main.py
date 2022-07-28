@@ -28,8 +28,7 @@ async def websocket_test(websocket: WebSocket):
     await connection_manager.connect(websocket=websocket)
     lobbyToken = None
     try:
-        await connection_manager.receive(websocket=websocket)
-        await websocket.receive_json()
-
+        while True:
+            await connection_manager.receive(websocket=websocket)
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
