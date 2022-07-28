@@ -1,10 +1,10 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from utils.ConnectionManager import ConnectionManager
+from utils.ConnectionManager import WebsocketManager
 
 app = FastAPI()
 
-connection_manager: ConnectionManager = ConnectionManager()
+connection_manager: WebsocketManager = WebsocketManager()
 
 
 @app.get("/")
@@ -25,5 +25,10 @@ async def websocket_test(websocket: WebSocket):
     #   -> if the error has a simple structure it can be just a: {"message": "Error message"}
     #   -> else the error should use an own dict structure with a self explanatory key
     #           for example: {"FormErrors": {"Username": {"MaxLenght": 12}, "LobbyName": {"MinLenght": 1}}}
-    await websocket.accept()
-    await connection_manager.receive()
+    await connection_manager.connect(websocket=websocket)
+    lobbyToken = None
+    try:
+        while True:
+            await connection_manager.receive(websocket=websocket)
+    except WebSocketDisconnect:
+        connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)

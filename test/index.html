@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat</title>
+</head>
+
+<body>
+    <h1>WebSocket Chat</h1>
+    <form action="" onsubmit="sendMessage(event)">
+        <input type="text" id="nameText" autocomplete="off" placeholder="your name" />
+        <input type="text" id="room name" autocomplete="off" placeholder="room name" />
+        <select name="type" id="type">
+            <option value="create_lobby">create_lobby</option>
+            <option value="join_lobby">join_lobby</option>
+        </select>
+        <button>Submit</button>
+    </form>
+    <ul id='messages'>
+    </ul>
+    <script>
+        var ws = new WebSocket("ws://localhost:8000/ws");
+        ws.onmessage = function (event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+        };
+        function sendMessage(event) {
+            var name = document.getElementById("nameText")
+            var room = document.getElementById("room name")
+            var type = document.getElementById("type")
+            ws.send(JSON.stringify({
+                "type": type.value,
+                "data": {
+                    "nickname": name.value,
+                    "lobby_name": room.value
+                }
+            }))
+            event.preventDefault()
+        }
+    </script>
+</body>
+
+</html>
