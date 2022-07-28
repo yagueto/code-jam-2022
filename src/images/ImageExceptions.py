@@ -8,3 +8,9 @@ class ImageFormatNotSupported(Exception):
         self.image = image
         self.message = message
         super().__init__(f"{message} -> IMAGE FORMAT: {self.image.mode}")
+
+
+class IncompatiblePatchNumber(Exception):
+    """Raises when the desired number of patches is not allowed."""
+
+    ...
