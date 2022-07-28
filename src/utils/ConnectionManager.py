@@ -1,7 +1,9 @@
-import secrets
+from secrets import token_urlsafe
 from typing import Any, Dict, List, Protocol
 
 from fastapi import WebSocket
+
+from utils.Exceptions import LobbyException
 
 
 class WebsocketManagerProtocol(Protocol):
@@ -78,14 +80,16 @@ class WebsocketManager:
         join to that socket room (room = list of websockets)
         :returns: lobbyToken the token of the lobby that was created
         """
-        lobbyToken = secrets.token_urlsafe(12)
+        lobbyToken = token_urlsafe(12)
 
         for game in self.active_games.values():
             if game["lobby_name"] == lobbyName:
-                raise NameError("Room name already exists")
+                raise LobbyException(
+                    action="create_lobby", field="lobby_name", message="already exists"
+                )
             while True:
                 if lobbyToken in self.active_games.keys():
-                    lobbyToken = secrets.token_urlsafe(12)
+                    lobbyToken = token_urlsafe(12)
                 else:
                     break
 
@@ -110,7 +114,7 @@ class WebsocketManager:
 
     async def receive(self, websocket: WebSocket):
         """Receive data from websocket and process it"""
-        data = await websocket.receive_json()
+        data: dict = await websocket.receive_json()
         try:
             match data["type"]:
                 case "create_lobby":
@@ -134,7 +138,11 @@ class WebsocketManager:
                         ):
                             for user in self.active_games[game]["connected"].values():
                                 if user == data["data"]["nickname"]:
-                                    raise NameError("Username already exists")
+                                    raise LobbyException(
+                                        action="join_lobby",
+                                        field="nickname",
+                                        message="already exists",
+                                    )
                             await self.join_lobby(
                                 websocket=websocket,
                                 nickname=data["data"]["nickname"],
@@ -156,11 +164,16 @@ class WebsocketManager:
                         websockets=[websocket], data="Unimplemented/Bad request"
                     )
         except KeyError as e:
-            print(e)
-            await self.send(websockets=[websocket], data="Bad request")
+            action = data.get("type", None)
+            await self.send(websockets=[websocket], data={
+                "type": action,
+                "error": {
+                    "Missing key": e.args[0]
+                }
+            })
 
-        except NameError as e:
-            await self.send(websockets=[websocket], data=e)
+        except LobbyException as e:
+            await self.send(websockets=[websocket], data=e.as_json())
 
     async def send(self, websockets: List[WebSocket], data: Any):
         """Send data to one or more clients"""

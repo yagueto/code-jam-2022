@@ -33,6 +33,3 @@ async def websocket_test(websocket: WebSocket):
 
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
-
-    except NameError as e:
-        await connection_manager.send(websockets=[websocket], data=e)
