@@ -9,7 +9,7 @@ Then to create the virtual enviroment you should run:
     python3.10 -m venv .venv
 
 This should have created a folder .venv where python and all the dependencies for the project are going to live. Now, every time you are going to run
-your code or you are going to install a dependencie, be sure that the virtual enviroment is active. In linux, this is made by:
+your code or you are going to install a package, be sure that the virtual enviroment is active. In linux, this is made by:
 
     source <repo path>/.venv/bin/activate
 
