@@ -26,11 +26,9 @@ async def websocket_test(websocket: WebSocket):
     #   -> else the error should use an own dict structure with a self explanatory key
     #           for example: {"FormErrors": {"Username": {"MaxLenght": 12}, "LobbyName": {"MinLenght": 1}}}
     await connection_manager.connect(websocket=websocket)
+    lobbyToken = None
     try:
         while True:
             await connection_manager.receive(websocket=websocket)
     except WebSocketDisconnect:
-        connection_manager.disconnect(
-            websocket=websocket,
-            lobbyToken=connection_manager.active_connections.get(websocket, None),
-        )
+        connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
