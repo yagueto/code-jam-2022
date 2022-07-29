@@ -52,3 +52,22 @@ class TestReshapeImages(TestImageManager):
         """Checks if the images have the same sizes after the method."""
         original_img, fake_img = ImageManager.reshape_images(self.original_img, self.fake_img)
         self.assertTupleEqual(original_img.size, fake_img.size)
+
+
+class TestSplitImage(TestImageManager):
+    """Checks the method split_image"""
+
+    def test_even_patches(self):
+        """Checks if the image is divided in 4 equal sized parts."""
+        patches = ImageManager.split_image(self.original_img, patches_number=4)
+        self.assertEqual(len(patches), 4)
+        last_patches_size = [patch.size for patch in patches[-2:]]
+        self.assertTupleEqual(*last_patches_size)
+
+    def test_odd_patches(self):
+        """Checks if the image is divided in 3 pieces with the last being bigger."""
+        patches = ImageManager.split_image(self.original_img, patches_number=3)
+        self.assertEqual(len(patches), 3)
+        small_patch_size, bigger_patch_size = [patch.size for patch in patches[-2:]]
+        self.assertEqual(small_patch_size[0], bigger_patch_size[0])  # row size is equal
+        self.assertGreater(bigger_patch_size[1], small_patch_size[1])  # column size is greater
