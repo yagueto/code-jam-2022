@@ -103,13 +103,10 @@ class WebsocketManager:
         """Join already existing lobby"""
         self.active_games[lobbyToken]["connected"][websocket] = nickname
         self.active_connections[websocket] = lobbyToken
-        event = {
-            "type": "join_lobby",
-            "data": {
-                nickname: "joined"
-            }
-        }
-        await self.send(websockets=self.active_games[lobbyToken]["connected"].keys(), data=event)
+        event = {"type": "join_lobby", "data": {nickname: "joined"}}
+        await self.send(
+            websockets=self.active_games[lobbyToken]["connected"].keys(), data=event
+        )
 
     async def connect(self, websocket: WebSocket):
         """Accept connection and add it to list of active connections"""
@@ -158,22 +155,31 @@ class WebsocketManager:
                                 websockets=[websocket],
                                 data={
                                     "type": "join_lobby",
-                                    "data": {"lobby_token": game},
+                                    "data": {
+                                        "lobby_token": game,
+                                        "connected": list(self.active_games[game][
+                                            "connected"
+                                        ].values()),
+                                    },
                                 },
                             )
                             return
-                    raise LobbyException(action="join_lobby", field="lobby_name", message="not found")
+                    raise LobbyException(
+                        action="join_lobby", field="lobby_name", message="not found"
+                    )
                 case _:
-                    raise LobbyException(action=data["type"], field="type", message="unimplemented/bad request")
+                    raise LobbyException(
+                        action=data["type"],
+                        field="type",
+                        message="unimplemented/bad request",
+                    )
 
         except KeyError as e:
             action = data.get("type", None)
-            await self.send(websockets=[websocket], data={
-                "type": action,
-                "error": {
-                    "Missing key": e.args[0]
-                }
-            })
+            await self.send(
+                websockets=[websocket],
+                data={"type": action, "error": {"Missing key": e.args[0]}},
+            )
 
         except LobbyException as e:
             await self.send(websockets=[websocket], data=e.as_json())
@@ -191,15 +197,21 @@ class WebsocketManager:
             for websocket in websockets:
                 await websocket.send_json({"message": data})
 
-    def disconnect(self, websocket: WebSocket, lobbyToken) -> None:
+    async def disconnect(self, websocket: WebSocket, lobbyToken) -> None:
         """Handle disconnection of a websocket."""
         print(f"{websocket.client} has disconnected - removing.")
         lobbyToken = self.active_connections[websocket]
         if lobbyToken:
+            nickname = self.active_games[lobbyToken]["connected"][websocket]
             del self.active_games[lobbyToken]["connected"][websocket]
             print(f"{websocket.client} was in room {lobbyToken} - removing from room")
             if len(self.active_games[lobbyToken]["connected"]) == 0:
                 del self.active_games[lobbyToken]
                 print("Room is empty - closing")
+            else:
+                event = {"type": "lobby_disconnect", "data": {nickname: "disconnected"}}
+                await self.send(
+                    self.active_games[lobbyToken]["connected"].keys(), event
+                )
 
         del self.active_connections[websocket]

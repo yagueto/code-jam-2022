@@ -32,4 +32,4 @@ async def websocket_test(websocket: WebSocket):
         await websocket.receive_json()
 
     except WebSocketDisconnect:
-        connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
+        await connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
