@@ -41,7 +41,7 @@ def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image
 
     mode = image.mode
     size = image.size
-    odd_patches = patches_number % 2
+    odd_patches = (patches_number % 2 != 0)
     total_cols = 2
 
     if odd_patches:
@@ -56,12 +56,14 @@ def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image
 
     for i in range(patches_number):
         col = (i % 2)
-        row = (i // 2) + (i % 2)
+        row = (i // 2)
 
         if i + 1 == patches_number and odd_patches:
-            patch = image[new_size[0] * row: new_size[0] * (row + 1), :]
+            patch = image[:, new_size[0] * row: new_size[0] * (row + 1)]
+        elif col == 1:
+            patch = image[new_size[1] * col:, new_size[0] * row: new_size[0] * (row + 1)]
         else:
-            patch = image[new_size[0] * row: new_size[0] * (row + 1), new_size[1] * col: new_size[1] * (col + 1)]
+            patch = image[new_size[1] * col: new_size[1] * (col + 1), new_size[0] * row: new_size[0] * (row + 1)]
 
         patch = Image.fromarray(patch, mode)
         patches.append(patch)
