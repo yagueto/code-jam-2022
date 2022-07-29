@@ -85,10 +85,7 @@ class WebsocketManager:
                 else:
                     break
 
-        self.active_games[lobbyToken] = {
-            "lobby_name": lobbyName,
-            "connected": {websocket: nickname},
-        }
+        self.active_games[lobbyToken] = {"lobby_name": lobbyName, "connected": {websocket: nickname}, "status": {}}
         return lobbyToken
 
     async def join_lobby(self, websocket: WebSocket, nickname: str, lobbyToken: str):
@@ -152,8 +149,25 @@ class WebsocketManager:
                             )
                             return
                     raise LobbyException(action="join_lobby", field="lobby_name", message="not found")
-                case "start_ready":
-                    pass
+                case "ready_up":
+                    if data["data"].get("status", None) not in ["ready", "not ready"]:
+                        raise LobbyException(action="ready_up", field="status", message="invalid status")
+                    lobbyToken = self.active_connections[websocket]
+                    nickname = self.active_games[lobbyToken]["connected"][websocket]
+                    self.active_games[lobbyToken]["status"][nickname] = data["data"]["status"]
+                    await self.send(
+                        websockets=self.active_games[lobbyToken]["connected"],
+                        data={"type": "ready_up", "data": {"ready": self.active_games[lobbyToken]["status"]}},
+                    )
+
+                    ready = 0
+                    for user in self.active_games[lobbyToken]["status"].values():
+                        if user == "ready":
+                            ready += 1
+                    if ready == 4:
+                        # TODO: The game needs to start here
+                        await self.send(self.active_games[lobbyToken]["connected"], {"type": "start"})
+
                 case _:
                     raise LobbyException(
                         action=data["type"],
