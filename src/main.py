@@ -30,6 +30,5 @@ async def websocket_test(websocket: WebSocket):
     try:
         while True:
             await connection_manager.receive(websocket=websocket)
-
     except WebSocketDisconnect:
-        await connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
+        connection_manager.disconnect(websocket=websocket, lobbyToken=lobbyToken)
