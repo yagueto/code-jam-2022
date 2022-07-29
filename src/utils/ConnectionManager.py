@@ -95,6 +95,20 @@ class WebsocketManager:
         event = {"type": "join_lobby", "data": {nickname: "joined"}}
         await self.send(websockets=self.active_games[lobbyToken]["connected"].keys(), data=event)
 
+    async def leave_lobby(self, websocket: WebSocket):
+        """Leave an existing lobby"""
+        lobbyToken = self.active_connections[websocket]
+        if lobbyToken:
+            nickname = self.active_games[lobbyToken]["connected"][websocket]
+            del self.active_games[lobbyToken]["connected"][websocket]
+            print(f"{websocket.client} was in room {lobbyToken} - removing from room")
+            if len(self.active_games[lobbyToken]["connected"]) == 0:
+                del self.active_games[lobbyToken]
+                print("Room is empty - closing")
+            else:
+                event = {"type": "leave_lobby", "data": {nickname: "left"}}
+                await self.send(self.active_games[lobbyToken]["connected"].keys(), event)
+
     async def connect(self, websocket: WebSocket):
         """Accept connection and add it to list of active connections"""
         await websocket.accept()
@@ -168,6 +182,9 @@ class WebsocketManager:
                         # TODO: The game needs to start here
                         await self.send(self.active_games[lobbyToken]["connected"], {"type": "start"})
 
+                case "leave_lobby":
+                    await self.leave_lobby(websocket)
+                    return
                 case _:
                     raise LobbyException(
                         action=data["type"],
@@ -194,19 +211,8 @@ class WebsocketManager:
             for websocket in websockets:
                 await websocket.send_json({"message": data})
 
-    async def disconnect(self, websocket: WebSocket, lobbyToken) -> None:
+    async def disconnect(self, websocket: WebSocket) -> None:
         """Handle disconnection of a websocket."""
         print(f"{websocket.client} has disconnected - removing.")
-        lobbyToken = self.active_connections[websocket]
-        if lobbyToken:
-            nickname = self.active_games[lobbyToken]["connected"][websocket]
-            del self.active_games[lobbyToken]["connected"][websocket]
-            print(f"{websocket.client} was in room {lobbyToken} - removing from room")
-            if len(self.active_games[lobbyToken]["connected"]) == 0:
-                del self.active_games[lobbyToken]
-                print("Room is empty - closing")
-            else:
-                event = {"type": "lobby_disconnect", "data": {nickname: "disconnected"}}
-                await self.send(self.active_games[lobbyToken]["connected"].keys(), event)
-
+        await self.leave_lobby(websocket)
         del self.active_connections[websocket]
