@@ -27,6 +27,50 @@ class ImageProtocol(Protocol):
         ...
 
 
+def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image]:
+    """
+    Split the image in the number of specified images.
+
+    If the number of images are odd, the last image double in size to the others.
+    """
+    if patches_number <= 0:
+        raise ImageExceptions.IncompatiblePatchNumber("Patches must be grater than 0.")
+
+    if patches_number == 1:
+        return (image,)
+
+    mode = image.mode
+    size = image.size
+    odd_patches = (patches_number % 2 != 0)
+    total_cols = 2
+
+    if odd_patches:
+        total_rows = (patches_number // 2) + 1
+    else:
+        total_rows = patches_number // 2
+
+    new_size = (size[0] // total_rows, size[1] // total_cols)
+
+    patches = []
+    image = np.array(image)
+
+    for i in range(patches_number):
+        col = (i % 2)
+        row = (i // 2)
+
+        if i + 1 == patches_number and odd_patches:
+            patch = image[:, new_size[0] * row: new_size[0] * (row + 1)]
+        elif col == 1:
+            patch = image[new_size[1] * col:, new_size[0] * row: new_size[0] * (row + 1)]
+        else:
+            patch = image[new_size[1] * col: new_size[1] * (col + 1), new_size[0] * row: new_size[0] * (row + 1)]
+
+        patch = Image.fromarray(patch, mode)
+        patches.append(patch)
+
+    return patches
+
+
 def convert_image_to_bit_format(image: Image.Image) -> Image.Image:
     """Convert PIL Image to bit mode."""
     return image.convert(mode="1")
