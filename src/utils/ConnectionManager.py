@@ -11,9 +11,7 @@ class WebsocketManagerProtocol(Protocol):
 
     active_games: Dict[str, WebSocket] = {}
 
-    async def create_lobby(
-        self, websocket: WebSocket, nickname: str, lobbyName: str
-    ) -> str:
+    async def create_lobby(self, websocket: WebSocket, nickname: str, lobbyName: str) -> str:
         """
         Create lobby with lobbyName.
 
@@ -26,9 +24,7 @@ class WebsocketManagerProtocol(Protocol):
         """
         ...
 
-    async def join_room(
-        self, websocket: WebSocket, nickname: str, lobbyToken: str
-    ) -> str:
+    async def join_room(self, websocket: WebSocket, nickname: str, lobbyToken: str) -> str:
         """
         Join room with lobbyToken.
 
@@ -67,9 +63,7 @@ class WebsocketManager:
         self.active_connections: Dict[WebSocket, str] = {}
         self.active_games: Dict[str, WebSocket] = {}
 
-    async def create_lobby(
-        self, websocket: WebSocket, nickname: str, lobbyName: str
-    ) -> str:
+    async def create_lobby(self, websocket: WebSocket, nickname: str, lobbyName: str) -> str:
         """
         Create lobby with lobbyName.
 
@@ -84,9 +78,7 @@ class WebsocketManager:
 
         for game in self.active_games.values():
             if game["lobby_name"] == lobbyName:
-                raise LobbyException(
-                    action="create_lobby", field="lobby_name", message="already exists"
-                )
+                raise LobbyException(action="create_lobby", field="lobby_name", message="already exists")
             while True:
                 if lobbyToken in self.active_games.keys():
                     lobbyToken = token_urlsafe(12)
@@ -104,9 +96,7 @@ class WebsocketManager:
         self.active_games[lobbyToken]["connected"][websocket] = nickname
         self.active_connections[websocket] = lobbyToken
         event = {"type": "join_lobby", "data": {nickname: "joined"}}
-        await self.send(
-            websockets=self.active_games[lobbyToken]["connected"].keys(), data=event
-        )
+        await self.send(websockets=self.active_games[lobbyToken]["connected"].keys(), data=event)
 
     async def connect(self, websocket: WebSocket):
         """Accept connection and add it to list of active connections"""
@@ -133,10 +123,9 @@ class WebsocketManager:
                     return
                 case "join_lobby":
                     for game in self.active_games:
-                        if (
-                            self.active_games[game]["lobby_name"]
-                            == data["data"]["lobby_name"]
-                        ):
+                        if self.active_games[game]["lobby_name"] == data["data"]["lobby_name"]:
+                            if len(self.active_games[game]["connected"]) > 3:
+                                raise LobbyException(action="join_lobby", field="lobby_name", message="room is full")
                             for user in self.active_games[game]["connected"].values():
                                 if user == data["data"]["nickname"]:
                                     raise LobbyException(
@@ -157,16 +146,14 @@ class WebsocketManager:
                                     "type": "join_lobby",
                                     "data": {
                                         "lobby_token": game,
-                                        "connected": list(self.active_games[game][
-                                            "connected"
-                                        ].values()),
+                                        "connected": list(self.active_games[game]["connected"].values()),
                                     },
                                 },
                             )
                             return
-                    raise LobbyException(
-                        action="join_lobby", field="lobby_name", message="not found"
-                    )
+                    raise LobbyException(action="join_lobby", field="lobby_name", message="not found")
+                case "start_ready":
+                    pass
                 case _:
                     raise LobbyException(
                         action=data["type"],
@@ -186,14 +173,10 @@ class WebsocketManager:
 
     async def send(self, websockets: List[WebSocket], data: Any):
         """Send data to one or more clients"""
-        # TODO: Handle different data types
-        if isinstance(data, Exception):  # TODO: This is a test
-            for websocket in websockets:
-                await websocket.send_json({"type": "error", "data": data.args})
-        elif type(data) is dict:
+        if type(data) is dict:
             for websocket in websockets:
                 await websocket.send_json(data)
-        else:
+        else:  # Should never happen!
             for websocket in websockets:
                 await websocket.send_json({"message": data})
 
@@ -210,8 +193,6 @@ class WebsocketManager:
                 print("Room is empty - closing")
             else:
                 event = {"type": "lobby_disconnect", "data": {nickname: "disconnected"}}
-                await self.send(
-                    self.active_games[lobbyToken]["connected"].keys(), event
-                )
+                await self.send(self.active_games[lobbyToken]["connected"].keys(), event)
 
         del self.active_connections[websocket]
