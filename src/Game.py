@@ -16,7 +16,7 @@ class Game:
     def __init__(self, players: Dict[WebSocket, str], connection_manager) -> None:
         self.players = players
         self.phase = first_phase.FirstPhase(
-            players=players, images_dir=pathlib.Path.cwd().parent.joinpath("tests", "misc")
+            players=players, images_dir=pathlib.Path.cwd().joinpath("phases", "bugs")
         )
 
     def game_start(self):

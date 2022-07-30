@@ -189,7 +189,6 @@ class WebsocketManager:
                         await self.send(self.active_games[lobbyToken]["connected"], {"type": "start"})
                         data = self.active_games[lobbyToken]["game"].game_start()
                         for event in data:
-                            print(type(event["user"]))
                             user = event.pop("user")
                             await self.send(websockets=[user], data=event)
                 case "leave_lobby":
