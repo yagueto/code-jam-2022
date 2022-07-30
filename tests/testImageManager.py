@@ -3,7 +3,7 @@ import unittest
 
 from PIL import Image
 
-from src.images import ImageExceptions, ImageManager
+from src.phases.images import ImageExceptions, ImageManager
 
 
 class TestImageManager(unittest.TestCase):
