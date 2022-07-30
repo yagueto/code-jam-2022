@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Protocol
 
 from fastapi import WebSocket
 
+from Game import Game
 from utils.Exceptions import LobbyException
 
 
@@ -85,7 +86,12 @@ class WebsocketManager:
                 else:
                     break
 
-        self.active_games[lobbyToken] = {"lobby_name": lobbyName, "connected": {websocket: nickname}, "status": {}}
+        self.active_games[lobbyToken] = {
+            "lobby_name": lobbyName,
+            "game": None,
+            "connected": {websocket: nickname},
+            "status": {},
+        }
         return lobbyToken
 
     async def join_lobby(self, websocket: WebSocket, nickname: str, lobbyToken: str):
@@ -179,12 +185,18 @@ class WebsocketManager:
                         if user == "ready":
                             ready += 1
                     if ready == 4:
-                        # TODO: The game needs to start here
+                        self.active_games[lobbyToken]["game"] = Game(self.active_games[lobbyToken]["connected"], self)
                         await self.send(self.active_games[lobbyToken]["connected"], {"type": "start"})
-
+                        data = self.active_games[lobbyToken]["game"].game_start()
+                        for event in data:
+                            print(type(event["user"]))
+                            user = event.pop("user")
+                            await self.send(websockets=[user], data=event)
                 case "leave_lobby":
                     await self.leave_lobby(websocket)
                     return
+                case "phase_1" | "phase_2":
+                    self.active_games[self.active_connections[websocket]]["game"].receive(data)
                 case _:
                     raise LobbyException(
                         action=data["type"],

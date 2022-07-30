@@ -38,6 +38,13 @@
                     "lobby_name": room.value
                 }
             }))
+            ws.send(JSON.stringify({
+                "type": "ready_up",
+                "data": {
+                    "nickname": name.value,
+                    "status": "ready"
+                }
+            }))
             event.preventDefault()
         }
     </script>
