@@ -6,6 +6,7 @@ from io import BytesIO
 from typing import Dict, List
 
 from fastapi import WebSocket
+from numpy import mean
 from PIL import Image
 
 from .images import ImageManager
@@ -18,7 +19,7 @@ class FirstPhase:
 
     submissions: Dict[WebSocket, List] = {}
 
-    def __init__(self, players: dict[WebSocket: str], images_dir: pathlib.Path) -> None:
+    def __init__(self, players: dict[WebSocket:str], images_dir: pathlib.Path) -> None:
         """Instanciate a FirstPhase object from the number of players and images directory."""
         self.players = players
         self.images_dir = images_dir
@@ -72,8 +73,26 @@ class FirstPhase:
             )
         return events
 
-    def receive(self, websocket: WebSocket, data: dict):  # noqa: D102
+    def receive(self, websocket: WebSocket, data: dict):
+        """Receive submissions from the frontend"""
         if data["data"].get("submission", None) is not None:
             self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
             metric = self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1])
             self.submissions[websocket][2] = metric
+
+    @property
+    def is_finished(self):
+        """Check if everyoene has submitted"""
+        for submission in self.submissions.values():
+            if submission[2] is None:
+                return False
+        return True
+
+    @property
+    def metrics(self):
+        """Get player data for the leaderboards"""
+        return [metric[2] for metric in self.submissions.values()]
+
+    def get_next_level_difficulty(self):
+        """Query next level difficulty based on the metrics from the submissions"""
+        return max(1, mean(self.metrics))
