@@ -1,7 +1,6 @@
-<header class="top">
+<app-header>
     <h1 [textContent]="currentState === 'join' ? 'Join a lobby' : (currentState === 'create' ? 'Create a lobby' : 'In a lobby')"></h1>
-    <h2>From Buggypedia, the bugged encyclopedia</h2>
-</header>
+</app-header>
 <main>
     <ng-container *ngIf="!loading">
         <ng-container *ngIf="currentState !== 'joined'">
@@ -28,7 +27,7 @@
                 <li>{{ lobbyInfo.me.nickname }} {{ (lobbyInfo.me.ready ? '✅' : '❌') }}</li>
                 <li *ngFor="let i of fourCount">{{ lobbyInfo.players.length >= i+1 ? lobbyInfo.players[i].nickname + ' ' + (lobbyInfo.players[i].ready ? '✅' : '❌') : '[Empty]' }}</li>
             </ul>
-            <button class="ready" (click)="toggleReady()" [textContent]="(lobbyInfo.me.ready ? 'Cancel ready' : 'Ready up')"></button>
+            <button class="ready" [disabled]="lobbyInfo.players.length !== 3" (click)="toggleReady()" [textContent]="(lobbyInfo.me.ready ? 'Cancel ready' : 'Ready up')"></button>
             <p>For the game to start there must be 4 people readied up.</p>
         </ng-container>
     </ng-container>

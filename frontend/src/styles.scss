@@ -43,11 +43,15 @@ body {
 }
 
 header.top {
-    h1, b {
+    h1, span {
         font-family: "Ibarra Real Nova";
     }
-    h1 {
+    span {
+        display: inline-block;
         font-weight: normal;
+    }
+    h1 {
+        font-weight: bolder;
         border-bottom: 1px solid black;
     }
     h2 {

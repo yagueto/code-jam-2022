@@ -9,13 +9,17 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { AboutComponent } from './_pages/about/about.component';
 import { LobbyComponent } from './_pages/lobby/lobby.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { PhaseOneComponent } from './_pages/phase-one/phase-one.component';
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SidebarComponent,
     AboutComponent,
-    LobbyComponent
+    LobbyComponent,
+    PhaseOneComponent,
+    HeaderComponent,
   ],
   imports: [
     BrowserModule,
