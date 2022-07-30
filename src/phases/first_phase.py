@@ -62,7 +62,7 @@ class FirstPhase:
         events = []
         for i, player_socket in enumerate(self.players.keys()):
             b64img = self.pillow_image_to_base64_string(patches[i])
-            self.submissions[player_socket] = [patches[i], None, None]
+            self.submissions[player_socket] = [patches[i], None, None]  # patch, submission, metric
             events.append(
                 {
                     "user": player_socket,
@@ -76,9 +76,4 @@ class FirstPhase:
         if data["data"].get("submission", None) is not None:
             self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
             metric = self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1])
-
-            return metric
-
-        # TODO Where should we store the metric
-        # TODO Can players submit multiple times?
-        # INFO The lower the metric, the better
+            self.submissions[websocket][2] = metric
