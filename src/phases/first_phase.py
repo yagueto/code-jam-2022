@@ -5,6 +5,7 @@ from base64 import b64encode, decodebytes
 from io import BytesIO
 from typing import Dict, List
 
+from fastapi import WebSocket
 from PIL import Image
 
 from .images import ImageManager
@@ -14,6 +15,8 @@ Patches = list[Image.Image]
 
 class FirstPhase:
     """Computes the logic of the first phase of the game."""
+
+    submissions: Dict[WebSocket, List] = {}
 
     def __init__(self, players: int, images_dir: pathlib.Path) -> None:
         """Instanciate a FirstPhase object from the number of players and images directory."""
@@ -34,15 +37,12 @@ class FirstPhase:
 
         return patches
 
-    def check_drawings_from_players(self, original_patchs: Patches, player_patchs: Patches) -> list[float]:
+    def check_drawing_from_player(self, original_patch: Image, player_patch: Image) -> list[float]:
         """Checks how well each player has draw his part."""
-        metrics = []
-        for original_patch, player_patch in zip(original_patchs, player_patchs):
-            original_patch, player_patch = ImageManager.reshape_images(original_patch, player_patch)
-            metric = ImageManager.compute_contour_similarity(player_patch, original_patch)
-            metrics.append(metric)
+        original_patch, player_patch = ImageManager.reshape_images(original_patch, player_patch)
+        metric = ImageManager.compute_contour_similarity(player_patch, original_patch)
 
-        return metrics
+        return metric
 
     def pillow_image_to_base64_string(self, img):
         """Convert PIL image to base64 to send through websocket"""
@@ -59,11 +59,18 @@ class FirstPhase:
         patches = self.create_image_patches(self.select_random_image())
         events = []
         for i in range(0, len(self.players)):
+            b64img = self.pillow_image_to_base64_string(patches[i])
+            self.submissions[list(self.players.keys())[i]] = [patches[i], None, None]
             events.append(
                 {
                     "user": list(self.players.keys())[i],
                     "type": "phase_start",
-                    "data": {"image": self.pillow_image_to_base64_string(patches[i])},
+                    "data": {"image": b64img},
                 }
             )
         return events
+
+    def receive(self, websocket, data):  # noqa: D102
+        if data["data"].get("submission", None) is not None:
+            self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
+            print(self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1]))

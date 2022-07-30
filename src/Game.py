@@ -23,6 +23,6 @@ class Game:
         """Start phase"""
         return self.phase.start()
 
-    def receive(self, data):
+    def receive(self, websocket, data):
         """Send update information to the current phase."""
-        print(data)
+        return self.phase.receive(websocket, data)
