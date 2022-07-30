@@ -25,9 +25,10 @@
         <ng-container *ngIf="currentState === 'joined'">
             <h3>Lobby name: {{ lobbyInfo.name }}</h3>
             <ul>
+                <li>{{ lobbyInfo.me.nickname }} {{ (lobbyInfo.me.ready ? '✅' : '❌') }}</li>
                 <li *ngFor="let i of fourCount">{{ lobbyInfo.players.length >= i+1 ? lobbyInfo.players[i].nickname + ' ' + (lobbyInfo.players[i].ready ? '✅' : '❌') : '[Empty]' }}</li>
             </ul>
-            <button class="ready" [disabled]="lobbyInfo.players.length !== 4">Ready up</button>
+            <button class="ready" (click)="toggleReady()" [textContent]="(lobbyInfo.me.ready ? 'Cancel ready' : 'Ready up')"></button>
             <p>For the game to start there must be 4 people readied up.</p>
         </ng-container>
     </ng-container>

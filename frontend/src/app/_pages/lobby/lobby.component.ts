@@ -11,12 +11,12 @@ import { player, wsResponse } from 'src/app/types';
   styleUrls: ['./lobby.component.scss']
 })
 export class LobbyComponent implements OnInit, OnDestroy {
-  fourCount = [0, 1, 2, 3];
+  fourCount = [0, 1, 2];
 
   currentState: "join" | "create" | "joined" = "create";
   loading: boolean = false;
 
-  lobbyInfo: {token: string, name: string, players: player[]} = {token: "", name: "", players: []};
+  lobbyInfo: {token: string, name: string, me: {nickname: string, ready: boolean}, players: player[]} = {token: "", name: "", me: {nickname: "", ready: false}, players: []};
   wsFormError: {msg: string, type: "nickname" | "field"};
 
   mainForm: FormGroup;
@@ -27,7 +27,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       ).subscribe(() => {
         if (this.lobbyInfo.token) {
           this.socket.leave_lobby();
-          this.lobbyInfo = {token: "", name: "", players: []};
+          this.lobbyInfo = {token: "", name: "", me: {nickname: "", ready: false}, players: []};
         }
         const nickname = (this.mainForm ? this.mainForm.get("nickname").value : null);
         this.checkUrlParams();
@@ -49,17 +49,16 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.socket.init();
     this.socket.socketResponse.subscribe((val: wsResponse) => {
       this.loading = false;
       if (!val.status) {
-        console.log(val);
         const key = "lobby_name" in val.error ? "lobby_name" : "nickname";
         this.wsFormError = {
           type: "lobby_name" in val.error ? "field" : "nickname",
           msg: val.error[key].charAt(0).toUpperCase() + val.error[key].slice(1) + "."
         }
         this.mainForm.reset(this.mainForm.value);
-        console.log(this.wsFormError);
         return;
       }
       if (val.type === "create_lobby" || val.type === "join_lobby") {
@@ -70,29 +69,52 @@ export class LobbyComponent implements OnInit, OnDestroy {
       if (val.type === "join_lobby") {
         if ("connected" in val.data) {
           const players: player[] = [];
-          (val.data["connected"] as string[]).forEach((val) => players.push({nickname: val, ready: false}));
+          (val.data["connected"] as string[]).forEach((val) => {
+            if (val !== this.lobbyInfo.me.nickname) {
+              players.push({nickname: val, ready: false});
+            }
+          });
           this.lobbyInfo.players = [...players];
         } else {
           let name = Object.keys(val.data)[0];
-          if (name === this.lobbyInfo.name) {return}
+          if (name === this.lobbyInfo.me.nickname) {return}
           this.lobbyInfo.players.push({
             nickname: name,
             ready: false
           });
         }
       } else if (val.type === "leave_lobby") {
-        let name = Object.keys(val.data)[0];
-        console.log(name);
-        for (let i = 0; i < this.lobbyInfo.players.length; i++) {
-          const player = this.lobbyInfo.players[i];
-          console.log(player);
-          if (name === player.nickname) {
-            this.lobbyInfo.players.splice(i, 1);
-            break
+        let index = this.getPlayerIndex(Object.keys(val.data)[0]);
+        if (index === -1) {return}
+        this.lobbyInfo.players.splice(index, 1);
+      } else if (val.type === "ready_up") {
+        for (const [k, v] of Object.entries(val.data["ready"] as object)) {
+          if (k === this.lobbyInfo.me.nickname) {
+            this.lobbyInfo.me.ready = v === "ready";
+            continue;
           }
+          let index = this.getPlayerIndex(k);
+          if (index === -1) {continue;}
+          let state = v === "ready";
+          this.lobbyInfo.players[index].ready = state;
         }
       }
+      console.log(val);
     });
+  }
+
+  getPlayerIndex(nickname: string) {
+    for (let i = 0; i < this.lobbyInfo.players.length; i++) {
+      if (nickname === this.lobbyInfo.players[i].nickname) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  toggleReady() {
+    this.socket.ready_up(!this.lobbyInfo.me.ready);
+    this.lobbyInfo.me.ready = !this.lobbyInfo.me.ready;
   }
 
   checkUrlParams() {
@@ -113,10 +135,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.socket.join_lobby(nickname, field);
     }
     this.lobbyInfo.name = field;
-    this.lobbyInfo.players = [{
-      nickname: nickname,
-      ready: false
-    }];
+    this.lobbyInfo.me.nickname = nickname;
+    this.lobbyInfo.me.ready = false;
     this.loading = true;
   }
 }

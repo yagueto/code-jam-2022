@@ -8,7 +8,9 @@ export class SocketService {
     socket: WebSocket;
     socketResponse: Subject<{}> = new Subject<{}>();
 
-    constructor () {
+    constructor () {}
+
+    init() {
         this.socket = new WebSocket(environment.baseUrl);
         this.socket.onmessage = (data: MessageEvent) => {
             let json: wsResponse = JSON.parse(data.data);
@@ -17,7 +19,7 @@ export class SocketService {
         };
     }
 
-    send(data: object) {
+    private send(data: object) {
         this.socket.send(JSON.stringify(data));
     }
 
@@ -31,5 +33,9 @@ export class SocketService {
 
     leave_lobby() {
         this.send({type: "leave_lobby"});
+    }
+
+    ready_up(state: boolean = true) {
+        this.send({type: "ready_up", "data": {"status": (state ? "ready" : "not ready")}});
     }
 }

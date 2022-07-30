@@ -42,8 +42,14 @@ main {
             font-size: 0.8rem;
         }
     }
-    h3, p.code {
+    h3 {
         margin-bottom: 0.35rem;
+    }
+    ul {
+        list-style: none;
+        li:first-child::after {
+            content: " (me)";
+        }
     }
     button {
         margin-top: .75rem;
