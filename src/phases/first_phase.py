@@ -37,7 +37,7 @@ class FirstPhase:
 
         return patches
 
-    def check_drawing_from_player(self, original_patch: Image.Image, player_patch: Image.Image) -> list[float]:
+    def check_drawing_from_player(self, original_patch: Image.Image, player_patch: Image.Image) -> float:
         """Checks how well each player has draw his part."""
         original_patch, player_patch = ImageManager.reshape_images(original_patch, player_patch)
         metric = ImageManager.compute_contour_similarity(player_patch, original_patch)
@@ -75,4 +75,10 @@ class FirstPhase:
     def receive(self, websocket: WebSocket, data: dict):  # noqa: D102
         if data["data"].get("submission", None) is not None:
             self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
-            print(self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1]))
+            metric = self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1])
+
+            return metric
+
+        # TODO Where should we store the metric
+        # TODO Can players submit multiple times?
+        # INFO The lower the metric, the better
