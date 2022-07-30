@@ -1,16 +1,23 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from utils.ConnectionManager import WebsocketManager
 
 app = FastAPI()
-
 connection_manager: WebsocketManager = WebsocketManager()
 
 
+@app.exception_handler(404)
+async def custom_404_handler(_, __):
+    """Handler for any 404 errors."""
+    return RedirectResponse(url="/index.html", status_code=301)
+
+
 @app.get("/")
-def hello():
+def redirect_to_main():
     """Test endpoint. Will return the main page."""
-    return {"hello": "world"}
+    return RedirectResponse(url="/index.html", status_code=301)
 
 
 @app.websocket("/ws")
@@ -33,3 +40,9 @@ async def websocket_test(websocket: WebSocket):
         await connection_manager.disconnect(
             websocket=websocket
         )
+
+app.mount(
+    "/",
+    StaticFiles(directory="./static", html=False),
+    name="static",
+)
