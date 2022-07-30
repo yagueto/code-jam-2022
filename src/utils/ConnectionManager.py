@@ -178,7 +178,7 @@ class WebsocketManager:
                     nickname = self.active_games[lobbyToken]["connected"][websocket]
                     self.active_games[lobbyToken]["status"][nickname] = data["data"]["status"]
                     await self.send(
-                        websockets=self.active_games[lobbyToken]["connected"],
+                        websockets=self.active_games[lobbyToken]["connected"].keys(),
                         data={"type": "ready_up", "data": {"ready": self.active_games[lobbyToken]["status"]}},
                     )
 
