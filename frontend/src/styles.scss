@@ -1,0 +1,62 @@
+@use "sass:string";
+$fonts: "Roboto", "EB Garamond", "Ibarra Real Nova";
+$fontImport: "https://fonts.googleapis.com/css?family=";
+@for $i from 1 through length($fonts) {
+    $name: nth($fonts, $i);
+    @while string.index($name, " ")  {
+        $spaceAt: string.index($name, " ");
+        $name: string.slice($name, 1, $spaceAt - 1) + "+" + string.slice($name, $spaceAt + 1);
+    }
+    $fontImport: $fontImport + $name;
+    @if length($fonts) != $i {
+        $fontImport: $fontImport + "|";
+    }
+}
+@import url($fontImport);
+
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    outline: none;
+    box-sizing: border-box;
+    font-family: "Roboto";
+}
+
+img {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+body {
+    background-color: #f6f7f7;
+    font-size: 16px;
+}
+
+header.top {
+    h1, b {
+        font-family: "Ibarra Real Nova";
+    }
+    h1 {
+        font-weight: normal;
+        border-bottom: 1px solid black;
+    }
+    h2 {
+        margin-top: 0.25rem;
+        font-size: .875rem;
+        font-weight: normal;
+    }
+}
+
+main {
+    margin-top: 1.5rem;
+}

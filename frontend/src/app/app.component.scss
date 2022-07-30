@@ -1,0 +1,43 @@
+router-outlet {
+    display: none;
+}
+
+:host {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 225px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+}
+
+header {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    ul {
+        padding: 0.25rem;
+        margin-left: auto;
+        text-align: right;
+        filter: blur(2px);
+        * {
+            pointer-events: none;
+            user-select: none;
+        }
+        li {
+            display: inline-block;
+            font-size: .875rem;
+            color: #0645AD;
+            margin-left: .75rem;
+            &:first-child {
+                color: #54595D;
+                margin-left: 0;
+                mat-icon {
+                    vertical-align: bottom;
+                }
+            }
+        }
+    }
+}
+
+app-sidebar {
+    height: 100%;
+    width: 225px;
+}
