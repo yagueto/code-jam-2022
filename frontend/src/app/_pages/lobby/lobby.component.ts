@@ -4,6 +4,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { SocketService } from 'src/app/socket.service';
 import { player, wsResponse } from 'src/app/types';
+import { LoadingService } from '../../loading.service';
 
 @Component({
   selector: 'app-lobby',
@@ -14,14 +15,13 @@ export class LobbyComponent implements OnInit, OnDestroy {
   fourCount = [0, 1, 2];
 
   currentState: "join" | "create" | "joined" = "create";
-  loading: boolean = false;
 
   lobbyInfo: {token: string, name: string, me: {nickname: string, ready: boolean}, players: player[]} = {token: "", name: "", me: {nickname: "", ready: false}, players: []};
-  wsFormError: {msg: string, type: "nickname" | "field"};
+  wsFormError: {msg: string, type: "nickname" | "field"} | null;
 
   mainForm: FormGroup;
 
-  constructor(private router: Router, private socket: SocketService) {
+  constructor(private router: Router, private socket: SocketService, private loading: LoadingService) {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd)
       ).subscribe(() => {
@@ -51,7 +51,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.socket.init();
     this.socket.socketResponse.subscribe((val: wsResponse) => {
-      this.loading = false;
+      this.loading.onLoadingChange.next(false);
       if (!val.status) {
         const key = "lobby_name" in val.error ? "lobby_name" : "nickname";
         this.wsFormError = {
@@ -137,6 +137,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.lobbyInfo.name = field;
     this.lobbyInfo.me.nickname = nickname;
     this.lobbyInfo.me.ready = false;
-    this.loading = true;
+    this.loading.onLoadingChange.next(true);
   }
 }

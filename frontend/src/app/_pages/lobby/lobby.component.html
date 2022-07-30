@@ -2,33 +2,31 @@
     <h1 [textContent]="currentState === 'join' ? 'Join a lobby' : (currentState === 'create' ? 'Create a lobby' : 'In a lobby')"></h1>
 </app-header>
 <main>
-    <ng-container *ngIf="!loading">
-        <ng-container *ngIf="currentState !== 'joined'">
-            <p>For more information visit: <a [routerLink]="['']">The bug</a>.</p>
-            <form [formGroup]="mainForm" (ngSubmit)="formSubmit()">
-                <div>
-                    <label for="nickname">Nickname</label>
-                    <input [ngClass]="{'error': (wsFormError && wsFormError.type ==='nickname' && !mainForm.get('nickname').dirty) || (mainForm.get('nickname').errors !== null && mainForm.get('nickname').dirty && mainForm.get('nickname').errors.hasOwnProperty('maxlength'))}" autocomplete="off" type="text" id="nickname" formControlName="nickname">
-                    <p class="error" *ngIf="mainForm.get('nickname').errors !== null && mainForm.get('nickname').errors.hasOwnProperty('maxlength')">For this field the maximum character lenght is {{ mainForm.get('nickname').errors['maxlength']['requiredLength'] }}.</p>
-                    <p class="error" *ngIf="wsFormError && wsFormError.type ==='nickname' && !mainForm.get('nickname').dirty">{{ wsFormError.msg }}</p>
-                </div>
-                <div class="bottom">
-                    <label for="name">Lobby name</label>
-                    <input [ngClass]="{'error': (wsFormError && wsFormError.type ==='field' && !mainForm.get('field').dirty) || (mainForm.get('field').errors !== null && mainForm.get('field').dirty && mainForm.get('field').errors.hasOwnProperty('maxlength'))}" autocomplete="off" type="text" id="name" formControlName="field">
-                    <p class="error" *ngIf="mainForm.get('field').errors !== null && mainForm.get('field').errors.hasOwnProperty('maxlength')">For this field the maximum character lenght is {{ mainForm.get('field').errors['maxlength']['requiredLength'] }}.</p>
-                    <p class="error" *ngIf="wsFormError && wsFormError.type ==='field' && !mainForm.get('field').dirty">{{ wsFormError.msg }}</p>
-                </div>
-                <button [disabled]="!mainForm.valid || (wsFormError && !mainForm.get(wsFormError.type).dirty)">{{ currentState === 'join' ? 'Join' : 'Create' }} lobby</button>
-            </form>
-        </ng-container>
-        <ng-container *ngIf="currentState === 'joined'">
-            <h3>Lobby name: {{ lobbyInfo.name }}</h3>
-            <ul>
-                <li>{{ lobbyInfo.me.nickname }} {{ (lobbyInfo.me.ready ? '✅' : '❌') }}</li>
-                <li *ngFor="let i of fourCount">{{ lobbyInfo.players.length >= i+1 ? lobbyInfo.players[i].nickname + ' ' + (lobbyInfo.players[i].ready ? '✅' : '❌') : '[Empty]' }}</li>
-            </ul>
-            <button class="ready" [disabled]="lobbyInfo.players.length !== 3" (click)="toggleReady()" [textContent]="(lobbyInfo.me.ready ? 'Cancel ready' : 'Ready up')"></button>
-            <p>For the game to start there must be 4 people readied up.</p>
-        </ng-container>
+    <ng-container *ngIf="currentState !== 'joined'">
+        <p>For more information visit: <a [routerLink]="['']">The bug</a>.</p>
+        <form [formGroup]="mainForm" (ngSubmit)="formSubmit()">
+            <div>
+                <label for="nickname">Nickname</label>
+                <input [ngClass]="{'error': (wsFormError && wsFormError.type ==='nickname' && !mainForm.get('nickname').dirty) || (mainForm.get('nickname').errors !== null && mainForm.get('nickname').dirty && mainForm.get('nickname').errors.hasOwnProperty('maxlength'))}" autocomplete="off" type="text" id="nickname" formControlName="nickname">
+                <p class="error" *ngIf="mainForm.get('nickname').errors !== null && mainForm.get('nickname').errors.hasOwnProperty('maxlength')">For this field the maximum character lenght is {{ mainForm.get('nickname').errors['maxlength']['requiredLength'] }}.</p>
+                <p class="error" *ngIf="wsFormError && wsFormError.type ==='nickname' && !mainForm.get('nickname').dirty">{{ wsFormError.msg }}</p>
+            </div>
+            <div class="bottom">
+                <label for="name">Lobby name</label>
+                <input [ngClass]="{'error': (wsFormError && wsFormError.type ==='field' && !mainForm.get('field').dirty) || (mainForm.get('field').errors !== null && mainForm.get('field').dirty && mainForm.get('field').errors.hasOwnProperty('maxlength'))}" autocomplete="off" type="text" id="name" formControlName="field">
+                <p class="error" *ngIf="mainForm.get('field').errors !== null && mainForm.get('field').errors.hasOwnProperty('maxlength')">For this field the maximum character lenght is {{ mainForm.get('field').errors['maxlength']['requiredLength'] }}.</p>
+                <p class="error" *ngIf="wsFormError && wsFormError.type ==='field' && !mainForm.get('field').dirty">{{ wsFormError.msg }}</p>
+            </div>
+            <button [disabled]="!mainForm.valid || (wsFormError && !mainForm.get(wsFormError.type).dirty)">{{ currentState === 'join' ? 'Join' : 'Create' }} lobby</button>
+        </form>
+    </ng-container>
+    <ng-container *ngIf="currentState === 'joined'">
+        <h3>Lobby name: {{ lobbyInfo.name }}</h3>
+        <ul>
+            <li>{{ lobbyInfo.me.nickname }} {{ (lobbyInfo.me.ready ? '✅' : '❌') }}</li>
+            <li *ngFor="let i of fourCount">{{ lobbyInfo.players.length >= i+1 ? lobbyInfo.players[i].nickname + ' ' + (lobbyInfo.players[i].ready ? '✅' : '❌') : '[Empty]' }}</li>
+        </ul>
+        <button class="ready" [disabled]="lobbyInfo.players.length !== 3" (click)="toggleReady()" [textContent]="(lobbyInfo.me.ready ? 'Cancel ready' : 'Ready up')"></button>
+        <p>For the game to start there must be 4 people readied up.</p>
     </ng-container>
 </main>

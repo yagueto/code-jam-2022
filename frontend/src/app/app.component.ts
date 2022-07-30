@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { LoadingService } from './loading.service';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'buggypedia';
+  loading: boolean = false;
+
+  constructor (private loadingManager: LoadingService) {
+    this.loadingManager.onLoadingChange.subscribe((val) => this.loading = val);
+  }
 }
