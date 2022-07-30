@@ -60,12 +60,12 @@ class FirstPhase:
         """Start phase by sending image patches to everyone"""
         patches = self.create_image_patches(self.select_random_image())
         events = []
-        for i in range(0, len(self.players)):
+        for i, player_socket in enumerate(self.players.keys()):
             b64img = self.pillow_image_to_base64_string(patches[i])
-            self.submissions[list(self.players.keys())[i]] = [patches[i], None, None]
+            self.submissions[player_socket] = [patches[i], None, None]
             events.append(
                 {
-                    "user": list(self.players.keys())[i],
+                    "user": player_socket,
                     "type": "phase_start",
                     "data": {"image": b64img},
                 }
