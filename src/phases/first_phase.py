@@ -9,7 +9,6 @@ from PIL import Image
 
 from .images import ImageManager
 
-
 Patches = list[Image.Image]
 
 
@@ -68,4 +67,3 @@ class FirstPhase:
                 }
             )
         return events
-
