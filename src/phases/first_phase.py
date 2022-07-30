@@ -18,7 +18,7 @@ class FirstPhase:
 
     submissions: Dict[WebSocket, List] = {}
 
-    def __init__(self, players: int, images_dir: pathlib.Path) -> None:
+    def __init__(self, players: dict[WebSocket: str], images_dir: pathlib.Path) -> None:
         """Instanciate a FirstPhase object from the number of players and images directory."""
         self.players = players
         self.images_dir = images_dir
@@ -44,15 +44,17 @@ class FirstPhase:
 
         return metric
 
-    def pillow_image_to_base64_string(self, img):
+    def pillow_image_to_base64_string(self, img: Image.Image) -> bytes:
         """Convert PIL image to base64 to send through websocket"""
         buffered = BytesIO()
-        img.save(buffered, format="JPEG")
+        img.save(buffered, format="PNG")
         return b64encode(buffered.getvalue()).decode("utf-8")
 
-    def base64_string_to_pillow_image(self, base64_str):
+    def base64_string_to_pillow_image(self, base64_str) -> Image.Image:
         """Convert received base64 str to PIL image"""
-        return Image.open(BytesIO(decodebytes(bytes(base64_str, "utf-8"))))
+        img = Image.open(BytesIO(decodebytes(bytes(base64_str, "utf-8"))))
+        img = ImageManager.convert_image_to_bit_format(img)
+        return img
 
     def start(self) -> List[Dict]:
         """Start phase by sending image patches to everyone"""
