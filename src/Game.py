@@ -35,9 +35,9 @@ class Game:
 
     def receive(self, websocket, data):
         """Send update information to the current phase."""
-        self.phases[self.phase].receive(websocket, data)
         if self.phases[self.phase].is_finished:
             return self.end_phase()
+        return self.phases[self.phase].receive(websocket, data)
 
     def start_next_phase(self):
         """Start the current phase."""
@@ -52,6 +52,7 @@ class Game:
 
         return {
             "type": "phase_end",
+            "user": self.players.keys(),
             "data": {
                 "phase": self.phase + 1,
             },

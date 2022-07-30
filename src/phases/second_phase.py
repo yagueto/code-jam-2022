@@ -16,7 +16,7 @@ from phases.images import ImageManager
 class SecondPhase:
     """Computes the logic of the first phase of the game."""
 
-    submissions: Dict[WebSocket, List] = {}
+    locations_data = {}
 
     def __init__(self, players: dict[WebSocket:str], image_dir: pathlib.Path) -> None:
         """Instanciate a FirstPhase object from the number of players and images directory."""
@@ -30,14 +30,12 @@ class SecondPhase:
 
         bug_locations = get_sphere_distribution(n=30)  # TODO: get this from the difficulty.
 
-        locations_data = {}
-
         for id, bug in enumerate(bug_locations):
             start_dif = timedelta(3, randint(0, 15))
             start_time = datetime.now() + start_dif
             end_time = datetime.now() + start_dif + timedelta(0, randint(3, 10))
 
-            locations_data[id] = {
+            self.locations_data[id] = {
                 "x": bug[0],
                 "y": bug[1],
                 "start_time": mktime(start_time.timetuple()),
@@ -46,36 +44,46 @@ class SecondPhase:
 
         return {
             "type": "phase_start",
+            "user": self.players.keys(),
             "data": {
                 "phase": 2,
                 "image": ImageManager.pillow_image_to_base64_string(Image.fromarray(img_array)),
-                "locations": locations_data,
+                "locations": self.locations_data,
             },
         }
 
     def receive(self, websocket: WebSocket, data: dict):
         """Receive submissions from the frontend"""
-        if data["data"].get("submission", None) is not None:
-            self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
-            metric = self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1])
-            self.submissions[websocket][2] = metric
+        try:
+            if data["data"].get("id", None) is not None:
+                if True:
+                    del self.locations_data[data["data"]["id"]]
+                    return {
+                        "type": "phase_update",
+                        "user": self.players.keys(),
+                        "data": {
+                            "phase": 2,
+                            "status": "remove",
+                            "bug": data["data"]["id"],
+                        },
+                    }
+        except KeyError:
+            return {"user": websocket, "type": "phase_update", "data": {"phase": 2, "error": "bad request"}}
 
     @property
     def is_finished(self):
         """Check if everyoene has submitted"""
-        for submission in self.submissions.values():
-            if submission[2] is None:
-                return False
-        return True
+        if len(self.locations_data) == 0:
+            return True
 
     @property
     def metrics(self):
         """Get player data for the leaderboards"""
-        return [metric[2] for metric in self.submissions.values()]
+        pass  # TODO
 
     def get_next_level_difficulty(self):
         """Query next level difficulty based on the metrics from the submissions"""
-        return max(1, np.mean(self.metrics))
+        return None
 
 
 def get_sphere_distribution(n, sep=5):

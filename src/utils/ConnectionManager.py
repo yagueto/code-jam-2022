@@ -193,7 +193,7 @@ class WebsocketManager:
                     for user in self.active_games[lobbyToken]["status"].values():
                         if user == "ready":
                             ready += 1
-                    if ready == 1:
+                    if ready == 4:
                         self.active_games[lobbyToken]["game"] = Game(self.active_games[lobbyToken]["connected"], self)
                         await self.send(
                             self.active_games[lobbyToken]["connected"],
@@ -209,19 +209,15 @@ class WebsocketManager:
                 case "phase_1" | "phase_2":
                     event = self.active_games[self.active_connections[websocket]]["game"].receive(websocket, data)
                     print(event)
-                    if event is not None and event["type"] != "phase_end":
-                        await self.send(
-                            self.active_games[self.active_connections[websocket]]["connected"].keys(),
-                            event,
-                        )
-                    elif event is not None and event["type"] == "phase_end":
-                        await self.send(
-                            self.active_games[self.active_connections[websocket]]["connected"].keys(), event
-                        )
+                    if event is not None and event["type"] not in ["phase_end", "phase_update"]:
+                        user = event.pop("user")
+                        await self.send(websockets=user, data=event)
+                    elif event is not None and event["type"] in ["phase_end", "phase_update"]:
+                        user = event.pop("user")
+                        await self.send(websockets=user, data=event)
                         event = self.active_games[self.active_connections[websocket]]["game"].start_next_phase()
-                        await self.send(
-                            self.active_games[self.active_connections[websocket]]["connected"].keys(), event
-                        )
+                        user = event.pop("user")
+                        await self.send(websockets=user, data=event)
 
                 case _:
                     raise LobbyException(
@@ -230,12 +226,13 @@ class WebsocketManager:
                         message="unimplemented/bad request",
                     )
 
-        except KeyError as e:
-            action = data.get("type", None)
-            await self.send(
-                websockets=[websocket],
-                data={"type": action, "error": {"Missing key": e.args[0]}},
-            )
+        # except KeyError as e:
+        #     print(e)
+        #     action = data.get("type", None)
+        #     await self.send(
+        #         websockets=[websocket],
+        #         data={"type": action, "error": {"Missing key": e.args[0]}},
+        #     )
 
         except LobbyException as e:
             await self.send(websockets=[websocket], data=e.as_json())
