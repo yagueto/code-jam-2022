@@ -27,6 +27,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       ).subscribe(() => {
         if (this.lobbyInfo.token) {
           this.socket.leave_lobby();
+          this.lobbyInfo = {token: "", name: "", players: []};
         }
         const nickname = (this.mainForm ? this.mainForm.get("nickname").value : null);
         this.checkUrlParams();
@@ -95,7 +96,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   checkUrlParams() {
-    const urlParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    const index = hash.indexOf("?");
+    if (index === -1) {return;}
+    const urlParams = new URLSearchParams(window.location.hash.slice(index));
     if (!(urlParams.has("action")) || (urlParams.get("action") != "join" && urlParams.get("action") != "create")) {return;}
     this.currentState = <"join" | "create">urlParams.get("action");
   }
