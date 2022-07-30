@@ -9,6 +9,7 @@ from PIL import Image
 
 from .images import ImageManager
 
+
 Patches = list[Image.Image]
 
 
@@ -31,6 +32,7 @@ class FirstPhase:
     def create_image_patches(self, image_to_split: Image.Image) -> Patches:
         """Divide the game image in different patches for different players"""
         patches = ImageManager.split_image(image_to_split, patches_number=len(self.players.keys()))
+
         return patches
 
     def check_drawings_from_players(self, original_patchs: Patches, player_patchs: Patches) -> list[float]:
@@ -66,3 +68,4 @@ class FirstPhase:
                 }
             )
         return events
+

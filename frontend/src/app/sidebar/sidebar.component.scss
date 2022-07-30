@@ -1,0 +1,98 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    padding: 1.125rem .75rem;
+    gap: .75rem;
+    border-right: 1px solid #A7D7F9;
+    position: relative;
+    z-index: 0;
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: -1px;
+        height: 150px;
+        background: linear-gradient(180deg, rgba(246,247,247,1) 35%, rgba(246,247,247,0) 100%);
+        z-index: -1;
+    }
+}
+
+div.brand {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    * {
+        font-family: "EB Garamond";
+        pointer-events: none;
+        user-select: none;
+    }
+    p.title {
+        font-variant: small-caps;
+        font-size: 2.25rem;
+        margin-top: -1rem;
+    }
+    p.moto {
+        font-size: 1rem;
+        margin-top: -.5rem;
+    }
+    img {
+        width: 7.8125rem;
+        height: 7.8125rem;
+    }
+}
+
+nav {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(50% 50% at 50% 50%, #FFCC00 0%, #CEA500 100%);
+    padding: 3px 6px;
+    h5 {
+        font-size: 1rem;
+        text-align: center;
+        user-select: none;
+    }
+    ul {
+        list-style: none;
+        li a {
+            display: block;
+            width: 100%;
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color .2s;
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.3);
+            }
+        }
+        li.selected a {
+            text-decoration: underline;
+        }
+    }
+}
+
+div.blurred {
+    margin-top: 0.25rem;
+    filter: blur(2px);
+    * {
+        pointer-events: none;
+        user-select: none;
+    }
+    ul {
+        list-style: none;
+    }
+    ul li {
+        font-size: .875rem;
+        color: #0645AD;
+        &:not(:last-child) {
+            margin-bottom: .375rem;
+        }
+    }
+    p.title {
+        margin-top: 1rem;
+    }
+    hr {
+        margin-bottom: 0.25rem;
+    }
+}
