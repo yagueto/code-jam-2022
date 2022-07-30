@@ -50,7 +50,9 @@ class TestReshapeImages(TestImageManager):
 
     def test_shapes_matches(self):
         """Checks if the images have the same sizes after the method."""
-        original_img, fake_img = ImageManager.reshape_images(self.original_img, self.fake_img)
+        original_img, fake_img = ImageManager.reshape_images(
+            self.original_img, self.fake_img
+        )
         self.assertTupleEqual(original_img.size, fake_img.size)
 
 
@@ -70,4 +72,6 @@ class TestSplitImage(TestImageManager):
         self.assertEqual(len(patches), 3)
         small_patch_size, bigger_patch_size = [patch.size for patch in patches[-2:]]
         self.assertEqual(small_patch_size[0], bigger_patch_size[0])  # row size is equal
-        self.assertGreater(bigger_patch_size[1], small_patch_size[1])  # column size is greater
+        self.assertGreater(
+            bigger_patch_size[1], small_patch_size[1]
+        )  # column size is greater

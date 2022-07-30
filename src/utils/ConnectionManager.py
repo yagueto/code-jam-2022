@@ -144,7 +144,11 @@ class WebsocketManager:
                     for game in self.active_games:
                         if self.active_games[game]["lobby_name"] == data["data"]["lobby_name"]:
                             if len(self.active_games[game]["connected"]) > 3:
-                                raise LobbyException(action="join_lobby", field="lobby_name", message="room is full")
+                                raise LobbyException(
+                                    action="join_lobby",
+                                    field="lobby_name",
+                                    message="room is full",
+                                )
                             for user in self.active_games[game]["connected"].values():
                                 if user == data["data"]["nickname"]:
                                     raise LobbyException(
@@ -179,16 +183,22 @@ class WebsocketManager:
                     self.active_games[lobbyToken]["status"][nickname] = data["data"]["status"]
                     await self.send(
                         websockets=self.active_games[lobbyToken]["connected"].keys(),
-                        data={"type": "ready_up", "data": {"ready": self.active_games[lobbyToken]["status"]}},
+                        data={
+                            "type": "ready_up",
+                            "data": {"ready": self.active_games[lobbyToken]["status"]},
+                        },
                     )
 
                     ready = 0
                     for user in self.active_games[lobbyToken]["status"].values():
                         if user == "ready":
                             ready += 1
-                    if ready == 4:
+                    if ready == 1:
                         self.active_games[lobbyToken]["game"] = Game(self.active_games[lobbyToken]["connected"], self)
-                        await self.send(self.active_games[lobbyToken]["connected"], {"type": "start"})
+                        await self.send(
+                            self.active_games[lobbyToken]["connected"],
+                            {"type": "start"},
+                        )
                         data = self.active_games[lobbyToken]["game"].game_start()
                         for event in data:
                             user = event.pop("user")
@@ -198,10 +208,21 @@ class WebsocketManager:
                     return
                 case "phase_1" | "phase_2":
                     event = self.active_games[self.active_connections[websocket]]["game"].receive(websocket, data)
-                    if event is not None:
+                    print(event)
+                    if event is not None and event["type"] != "phase_end":
+                        await self.send(
+                            self.active_games[self.active_connections[websocket]]["connected"].keys(),
+                            event,
+                        )
+                    elif event is not None and event["type"] == "phase_end":
                         await self.send(
                             self.active_games[self.active_connections[websocket]]["connected"].keys(), event
                         )
+                        event = self.active_games[self.active_connections[websocket]]["game"].start_next_phase()
+                        await self.send(
+                            self.active_games[self.active_connections[websocket]]["connected"].keys(), event
+                        )
+
                 case _:
                     raise LobbyException(
                         action=data["type"],

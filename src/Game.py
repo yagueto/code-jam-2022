@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from fastapi import WebSocket
 
-from phases import first_phase
+from phases import first_phase, second_phase
 
 
 class Game:
@@ -18,7 +18,14 @@ class Game:
     def __init__(self, players: Dict[WebSocket, str], connection_manager) -> None:
         self.players = players
         self.phases = [
-            first_phase.FirstPhase(players=players, images_dir=pathlib.Path.cwd().joinpath("phases", "bugs")),
+            first_phase.FirstPhase(
+                players=players,
+                images_dir=pathlib.Path.cwd().joinpath("phases", "bugs"),
+            ),
+            second_phase.SecondPhase(
+                players=players,
+                image_dir=pathlib.Path.cwd().joinpath("phases", "bugs", "ant_contour.png"),
+            ),
         ]
         self.connection_manager = connection_manager
 
@@ -32,12 +39,20 @@ class Game:
         if self.phases[self.phase].is_finished:
             return self.end_phase()
 
-    def end_phase(self):
-        """Collects the game metrics for each player and ..."""
+    def start_next_phase(self):
+        """Start the current phase."""
         dif = self.phases[self.phase].get_next_level_difficulty()
         self.phase += 1
+        return self.phases[self.phase].start(dif)
+
+    def end_phase(self):
+        """Collects the game metrics for each player and ..."""
         if len(self.phases) <= self.phase:
             return  # TODO: Call statistics site from here
-        self.phases[self.phase].start(dif)
 
-        return self.connection_manager.send(self.players.keys(), {"type": "phase_end"})
+        return {
+            "type": "phase_end",
+            "data": {
+                "phase": self.phase + 1,
+            },
+        }

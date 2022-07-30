@@ -1,3 +1,5 @@
+from base64 import b64encode, decodebytes
+from io import BytesIO
 from typing import Protocol
 
 import cv2
@@ -41,7 +43,7 @@ def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image
 
     mode = image.mode
     size = image.size
-    odd_patches = (patches_number % 2 != 0)
+    odd_patches = patches_number % 2 != 0
     total_cols = 2
 
     if odd_patches:
@@ -55,15 +57,18 @@ def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image
     image = np.array(image)
 
     for i in range(patches_number):
-        col = (i % 2)
-        row = (i // 2)
+        col = i % 2
+        row = i // 2
 
         if i + 1 == patches_number and odd_patches:
             patch = image[:, new_size[0] * row: new_size[0] * (row + 1)]
         elif col == 1:
             patch = image[new_size[1] * col:, new_size[0] * row: new_size[0] * (row + 1)]
         else:
-            patch = image[new_size[1] * col: new_size[1] * (col + 1), new_size[0] * row: new_size[0] * (row + 1)]
+            patch = image[
+                new_size[1] * col: new_size[1] * (col + 1),
+                new_size[0] * row: new_size[0] * (row + 1),
+            ]
 
         patch = Image.fromarray(patch, mode)
         patches.append(patch)
@@ -96,6 +101,20 @@ def compute_contour_similarity(fake_contour: Image.Image, original_contour: Imag
     similarity = cv2.matchShapes(fake_array, original_array, 1, 0.0)
 
     return similarity
+
+
+def pillow_image_to_base64_string(img: Image.Image) -> bytes:
+    """Convert PIL image to base64 to send through websocket"""
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    return b64encode(buffered.getvalue()).decode("utf-8")
+
+
+def base64_string_to_pillow_image(base64_str) -> Image.Image:
+    """Convert received base64 str to PIL image"""
+    img = Image.open(BytesIO(decodebytes(bytes(base64_str, "utf-8"))))
+    img = convert_image_to_bit_format(img)
+    return img
 
 
 def main():  # noqa: D103

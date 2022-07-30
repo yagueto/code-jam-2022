@@ -1,8 +1,6 @@
 """The first phase of the buggypedia will contain a colaborative drawing contours game."""
 import pathlib
 import random
-from base64 import b64encode, decodebytes
-from io import BytesIO
 from typing import Dict, List
 
 from fastapi import WebSocket
@@ -45,25 +43,17 @@ class FirstPhase:
 
         return metric
 
-    def pillow_image_to_base64_string(self, img: Image.Image) -> bytes:
-        """Convert PIL image to base64 to send through websocket"""
-        buffered = BytesIO()
-        img.save(buffered, format="PNG")
-        return b64encode(buffered.getvalue()).decode("utf-8")
-
-    def base64_string_to_pillow_image(self, base64_str) -> Image.Image:
-        """Convert received base64 str to PIL image"""
-        img = Image.open(BytesIO(decodebytes(bytes(base64_str, "utf-8"))))
-        img = ImageManager.convert_image_to_bit_format(img)
-        return img
-
     def start(self) -> List[Dict]:
         """Start phase by sending image patches to everyone"""
         patches = self.create_image_patches(self.select_random_image())
         events = []
         for i, player_socket in enumerate(self.players.keys()):
-            b64img = self.pillow_image_to_base64_string(patches[i])
-            self.submissions[player_socket] = [patches[i], None, None]  # patch, submission, metric
+            b64img = ImageManager.pillow_image_to_base64_string(patches[i])
+            self.submissions[player_socket] = [
+                patches[i],
+                None,
+                None,
+            ]  # patch, submission, metric
             events.append(
                 {
                     "user": player_socket,
@@ -76,7 +66,7 @@ class FirstPhase:
     def receive(self, websocket: WebSocket, data: dict):
         """Receive submissions from the frontend"""
         if data["data"].get("submission", None) is not None:
-            self.submissions[websocket][1] = self.base64_string_to_pillow_image(data["data"]["submission"])
+            self.submissions[websocket][1] = ImageManager.base64_string_to_pillow_image(data["data"]["submission"])
             metric = self.check_drawing_from_player(self.submissions[websocket][0], self.submissions[websocket][1])
             self.submissions[websocket][2] = metric
 
@@ -91,8 +81,8 @@ class FirstPhase:
     @property
     def metrics(self):
         """Get player data for the leaderboards"""
-        return [metric[2] for metric in self.submissions.values()]
+        return {player_socket: metric[2] for player_socket, metric in self.submissions.items()}
 
     def get_next_level_difficulty(self):
         """Query next level difficulty based on the metrics from the submissions"""
-        return max(1, mean(self.metrics))
+        return max(1, mean(list(self.metrics.values())))
