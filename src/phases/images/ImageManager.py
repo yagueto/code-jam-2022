@@ -73,7 +73,7 @@ def split_image(image: Image.Image, patches_number: int = 4) -> list[Image.Image
 
 def convert_image_to_bit_format(image: Image.Image) -> Image.Image:
     """Convert PIL Image to bit mode."""
-    return image.convert(mode="1")
+    return image.convert(mode="L")
 
 
 def reshape_images(image_1: Image.Image, image_2: Image.Image) -> tuple[Image.Image, Image.Image]:
@@ -85,9 +85,9 @@ def reshape_images(image_1: Image.Image, image_2: Image.Image) -> tuple[Image.Im
 
 def compute_contour_similarity(fake_contour: Image.Image, original_contour: Image.Image) -> float:
     """Compares the contour using a image similarity algorithm and returns a float between 0 and 1."""
-    if fake_contour.mode != "1":
+    if fake_contour.mode != "L":
         raise ImageExceptions.ImageFormatNotSupported(fake_contour)
-    elif original_contour.mode != "1":
+    elif original_contour.mode != "L":
         raise ImageExceptions.ImageFormatNotSupported(original_contour)
 
     fake_array = np.array(fake_contour).astype(np.float32)

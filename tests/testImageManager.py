@@ -23,9 +23,9 @@ class TestConvertImageToBitformat(TestImageManager):
     """Test the convert_image_to_bitformat method."""
 
     def test_convert_image_to_bitformat(self):
-        """Checks that the final PIL mode is '1'."""
+        """Checks that the final PIL mode is 'L'."""
         converted_img = ImageManager.convert_image_to_bit_format(self.fake_img)
-        self.assertEqual(converted_img.mode, "1")
+        self.assertEqual(converted_img.mode, "L")
 
 
 class TestComputeContourSimilarity(TestImageManager):
@@ -40,9 +40,11 @@ class TestComputeContourSimilarity(TestImageManager):
         self.assertGreaterEqual(similarity, 0)
 
     def test_wrong_format(self):
-        """Checks that the method raises an error when the PIL mode is different from '1'."""
+        """Checks that the method raises an error when the PIL mode is different from 'L'."""
         with self.assertRaises(ImageExceptions.ImageFormatNotSupported):
-            ImageManager.compute_contour_similarity(self.fake_img, self.original_img)
+            original_img = self.original_img.convert("RGB")
+            fake_img = self.original_img.convert("RGB")
+            ImageManager.compute_contour_similarity(fake_img, original_img)
 
 
 class TestReshapeImages(TestImageManager):
