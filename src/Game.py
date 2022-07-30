@@ -26,3 +26,10 @@ class Game:
     def receive(self, websocket, data):
         """Send update information to the current phase."""
         return self.phase.receive(websocket, data)
+
+    def end_game(self):
+        """Collects the game metrics for each player and ..."""
+        self.metrics = {}
+        for player_socket in self.players:
+            metric = self.phase.submissions[player_socket][2]
+            self.metrics[player_socket] = metric
