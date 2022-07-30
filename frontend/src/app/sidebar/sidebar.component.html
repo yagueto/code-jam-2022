@@ -1,0 +1,51 @@
+<div class="brand">
+    <img src="../../assets/logo.png" alt="Buggypedia logo">
+    <p class="title"><span>B</span>uggypedi<span>A</span></p>
+    <p class="moto">The Bugged Encyclopedia</p>
+</div>
+<nav>
+    <h5>We need your help!</h5>
+    <ul>
+        <li><a [routerLink]="['/']">The bug</a></li>
+        <li><a [routerLink]="['helpers']">Helpers</a></li>
+        <li><a [routerLink]="['lobby']" [queryParams]="{action: 'create'}">Create a lobby</a></li>
+        <li><a [routerLink]="['lobby']" [queryParams]="{action: 'join'}">Join a lobby</a></li>
+    </ul>
+    <h5>Help us, please!</h5>
+</nav>
+<div class="blurred">
+    <ul>
+        <li>Main page</li>
+        <li>Contents</li>
+        <li>Current events</li>
+        <li>Random article</li>
+        <li>About Buggypedia</li>
+        <li>Contact us</li>
+        <li>Donate</li>
+    </ul>
+    <p class="title">Contribute</p>
+    <hr>
+    <ul>
+        <li>Help</li>
+        <li>Learn to edit</li>
+        <li>Community portal</li>
+        <li>Recent changes</li>
+        <li>Upload file</li>
+    </ul>
+    <p class="title">Tools</p>
+    <hr>
+    <ul>
+        <li>What links here</li>
+        <li>Related changes</li>
+        <li>Special pages</li>
+        <li>Permanent link</li>
+        <li>Page information</li>
+        <li>Buggydata item</li>
+    </ul>
+    <p class="title">Print/ecport</p>
+    <hr>
+    <ul>
+        <li>Download as PDF</li>
+        <li>Printable version</li>
+    </ul>
+</div>
