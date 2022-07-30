@@ -197,7 +197,11 @@ class WebsocketManager:
                     await self.leave_lobby(websocket)
                     return
                 case "phase_1" | "phase_2":
-                    self.active_games[self.active_connections[websocket]]["game"].receive(data)
+                    event = self.active_games[self.active_connections[websocket]]["game"].receive(websocket, data)
+                    if event is not None:
+                        await self.send(
+                            self.active_games[self.active_connections[websocket]]["connected"].keys(), event
+                        )
                 case _:
                     raise LobbyException(
                         action=data["type"],
