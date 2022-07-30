@@ -125,6 +125,8 @@ class WebsocketManager:
         data: dict = await websocket.receive_json()
         try:
             match data["type"]:
+                case "ping":
+                    await self.send(websockets=[websocket], data={"pong": "pong"})
                 case "create_lobby":
                     lobbyToken = await self.create_lobby(
                         websocket, data["data"]["nickname"], data["data"]["lobby_name"]
